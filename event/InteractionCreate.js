@@ -1,5 +1,6 @@
 const CreateThread = require('../commands/CreateThread');
 const Databases = require('../event/Databases');
+const ParseTime = require('../utils/ParseTime');
 const { ADMIN_ROLES_ID } = require('../config.json');
 
 module.exports = (client, db) => {
@@ -15,8 +16,10 @@ module.exports = (client, db) => {
                     return;
                 }
                 const thread = await CreateThread.execute(interaction);
-                await Databases.writeToDB(interaction, db, thread.id);
-                await Databases.monitorThread(thread, interaction.guild);
+                const timeMs = ParseTime(interaction.options.getString('time'));
+                const role = interaction.options.getRole('role');
+                await Databases.writeToDB(interaction, db, thread.id, timeMs);
+                await Databases.monitorThread(db, thread, interaction.guild, timeMs, role);
             }
         } else if (interaction.isButton()) {
             try {

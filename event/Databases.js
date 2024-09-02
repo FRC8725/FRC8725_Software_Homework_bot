@@ -10,25 +10,38 @@ async function initData(client, db) {
             return;
         }
 
+        const now = new Date();
+
         for (const row of rows) {
             const threadId = row.id;
+            const reminderTime = new Date(row.time);
+            const remainingTime = reminderTime - now;
 
-            try {
-                const threadChannel = await client.channels.fetch(threadId);
-                if (threadChannel) monitorThread(threadChannel, threadChannel.guild);
-                else console.warn(`Thread with ID ${threadId} not found or is not a thread.`);
-            } catch (error) {
-                // console.warn(`Error fetching thread with ID ${threadId}:`, error);
-                await removeData(db, threadId);
+            if (remainingTime > 0) {
+                try {
+                    const threadChannel = await client.channels.fetch(threadId);
+                    if (threadChannel) {
+                        monitorThread(threadChannel, threadChannel.guild, remainingTime);
+                    } else {
+                        console.warn(`Thread with ID ${threadId} not found or is not a thread.`);
+                        await removeData(db, threadId); // 刪除不存在的討論串
+                    }
+                } catch (error) {
+                    console.error(`Error fetching thread with ID ${threadId}:`, error);
+                    await removeData(db, threadId); // 刪除出錯的討論串
+                }
+            } else {
+                await removeData(db, threadId); // 刪除過期的提醒
             }
         }
     });
 };
 
 
-async function writeToDB(interaction, db, id) {
-    const name = interaction.options.getString('name')
-    db.run('INSERT INTO threads (id, name) VALUES (?, ?)', [id, name], (err) => {
+async function writeToDB(interaction, db, id, timeMs) {
+    const name = interaction.options.getString('name');
+    const reminderTime = new Date(Date.now() + timeMs).toISOString().replace('T', ' ').replace(/\..+/, '');
+    db.run('INSERT INTO threads (id, name, time) VALUES (?, ?, ?)', [id, name, reminderTime], (err) => {
         if (err) {
             console.error(err);
             return interaction.reply({
@@ -51,12 +64,14 @@ async function removeData(db, id) {
     });
 }
 
-async function monitorThread(thread, guild) {
+async function monitorThread(db, thread, guild, timeMs, role) {
+    const answeredMembers = new Set();
     const collector = thread.createMessageCollector({
         filter: m => !m.author.bot,
     });
 
     collector.on('collect', async message => {
+        answeredMembers.add(message.author.id);
         try {
             const isQuestion = await checkIfQuestion(message, guild);
 
@@ -86,7 +101,7 @@ async function monitorThread(thread, guild) {
                     if (destinationChannel) {
                         const files = attachments.map(a => ({ attachment: a.filePath, name: a.name }));
                         await destinationChannel.send({
-                            content: `<#${thread.id}> <@${message.author.id}>回覆的答案：\n${contentToForward}`,
+                            content: `${thread.name} <@${message.author.id}>回覆的答案：\n${contentToForward}`,
                             files,
                         });
                         for (const attachment of attachments) {
@@ -101,6 +116,18 @@ async function monitorThread(thread, guild) {
             console.error(error);
         }
     });
+
+    setTimeout(async () => {
+        const roleMembers = role.members.map(member => member.id);
+        const unansweredMembers = roleMembers.filter(memberId => !answeredMembers.has(memberId));
+
+        if (unansweredMembers.length > 0) {
+            const tagMessage = unansweredMembers.map(id => `<@${id}>`).join(' ');
+            await thread.send(`以下成員尚未作答：${tagMessage}`);
+        }
+
+        await removeData(db, thread.id);
+    }, timeMs);
 }
 
 async function checkIfQuestion(message, guild) {

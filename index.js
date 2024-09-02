@@ -1,10 +1,6 @@
 const { Client, GatewayIntentBits } = require('discord.js');
-const { TOKEN, ADMIN_ROLES_ID } = require('./config.json');
-const CreateThread = require('./commands/CreateThread');
+const { TOKEN } = require('./config.json');
 const deployCommands = require('./deploy-commands');
-const Databases = require('./event/Databases');
-const Interaction = require('./event/InteractionCreate');
-const InteractionCreate = require('./event/InteractionCreate');
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./threads.db');
 const client = new Client({
@@ -29,7 +25,8 @@ db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS threads (
             id TEXT PRIMARY KEY,
-            name TEXT NOT NULL
+            name TEXT NOT NULL,
+            time TEXT NOT NULL
         )
     `);
 });
