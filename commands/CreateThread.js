@@ -16,13 +16,8 @@ class createThread {
                     .setRequired(true))
             .addStringOption(option =>
                 option.setName('time')
-                    .setDescription('提醒時間')
+                    .setDescription('提醒時間（d、hr、min、s）')
                     .setRequired(false)
-                    .addChoices(
-                        { name: '1 分鐘', value: '1min'},
-                        { name: '1 小時', value: '1hr'},
-                        { name: '1 天', value: '1d'}
-                    )
             );
     }
     async execute(interaction) {

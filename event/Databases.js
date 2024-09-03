@@ -117,6 +117,7 @@ async function monitorThread(db, thread, guild, timeMs, role) {
         }
     });
 
+    if (timeMs == 0.0) return;
     setTimeout(async () => {
         const roleMembers = role.members.map(member => member.id);
         const unansweredMembers = roleMembers.filter(memberId => !answeredMembers.has(memberId));
