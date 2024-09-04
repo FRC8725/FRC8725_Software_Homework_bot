@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 async function initData(client, db) {
-    db.all('SELECT id, name FROM threads', async (err, rows) => {
+    db.all('SELECT id, name, time FROM threads', async (err, rows) => {
         if (err) {
             console.error('Error fetching threads from database:', err);
             return;
