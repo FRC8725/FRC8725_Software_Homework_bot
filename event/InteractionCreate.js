@@ -18,7 +18,7 @@ module.exports = (client, db) => {
                 const thread = await CreateThread.execute(interaction);
                 const timeMs = ParseTime(interaction.options.getString('time'));
                 const role = interaction.options.getRole('role');
-                await Databases.writeToDB(interaction, db, thread.id, timeMs);
+                await Databases.writeToDB(interaction, db, thread.id, timeMs, role.id);
                 await Databases.monitorThread(db, thread, interaction.guild, timeMs, role);
             }
         } else if (interaction.isButton()) {
