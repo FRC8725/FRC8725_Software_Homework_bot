@@ -4,39 +4,34 @@ const path = require('path');
 const fs = require('fs');
 
 async function initData(client, db) {
-    db.all('SELECT id, name FROM threads', async (err, rows) => {
+    db.all('SELECT id, name, time, roleId FROM threads', async (err, rows) => {
         if (err) {
             console.error('Error fetching threads from database:', err);
             return;
         }
-
         const now = new Date();
 
         for (const row of rows) {
-            const threadId = row.id;
-            const reminderTime = new Date(row.time);
-            const remainingTime = reminderTime - now;
+            const { id, time, roleId } = row;
+            const timeDiff = new Date(time) - now;
 
-            if (remainingTime > 0) {
+            if (timeDiff !== 0.0) {
                 try {
-                    const threadChannel = await client.channels.fetch(threadId);
+                    const threadChannel = await client.channels.fetch(id);
                     if (threadChannel) {
-                        monitorThread(threadChannel, threadChannel.guild, remainingTime);
+                        monitorThread(db, threadChannel, threadChannel.guild, remainingTime);
                     } else {
-                        console.warn(`Thread with ID ${threadId} not found or is not a thread.`);
-                        await removeData(db, threadId); // 刪除不存在的討論串
+                        // console.warn(`Thread with ID ${threadId} not found or is not a thread.`);
+                        // await removeData(db, id); // 刪除不存在的討論串
                     }
                 } catch (error) {
-                    console.error(`Error fetching thread with ID ${threadId}:`, error);
-                    await removeData(db, threadId); // 刪除出錯的討論串
+                    // console.error(`Error fetching thread with ID ${threadId}:`, error);
+                    // await removeData(db, id); // 刪除出錯的討論串
                 }
-            } else {
-                await removeData(db, threadId); // 刪除過期的提醒
             }
         }
     });
 };
-
 
 async function writeToDB(interaction, db, id) {
     const name = interaction.options.getString('name');
@@ -114,6 +109,7 @@ async function monitorThread(thread, guild) {
         } catch (error) {
             console.error(error);
         }
+        thread.spokenMembers = answeredMembers;
     });
 }
 
