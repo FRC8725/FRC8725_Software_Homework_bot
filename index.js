@@ -25,9 +25,7 @@ db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS threads (
             id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            time TEXT NOT NULL,
-            roleId TEXT NOT NULL
+            name TEXT NOT NULL
         )
     `);
 });

@@ -33,11 +33,9 @@ async function initData(client, db) {
     });
 };
 
-
-async function writeToDB(interaction, db, id, timeMs, roleId) {
+async function writeToDB(interaction, db, id) {
     const name = interaction.options.getString('name');
-    const reminderTime = new Date(Date.now() + timeMs).toISOString().replace('T', ' ').replace(/\..+/, '');
-    db.run('INSERT INTO threads (id, name, time, roleId) VALUES (?, ?, ?, ?)', [id, name, reminderTime, roleId], (err) => {
+    db.run('INSERT INTO threads (id, name) VALUES (?, ?)', [id, name], (err) => {
         if (err) {
             console.error(err);
             return interaction.reply({
@@ -60,7 +58,7 @@ async function removeData(db, id) {
     });
 }
 
-async function monitorThread(db, thread, guild, timeMs, role) {
+async function monitorThread(thread, guild) {
     const answeredMembers = new Set();
     const collector = thread.createMessageCollector({
         filter: m => !m.author.bot,
@@ -113,17 +111,6 @@ async function monitorThread(db, thread, guild, timeMs, role) {
         }
         thread.spokenMembers = answeredMembers;
     });
-
-    if (timeMs == 0.0) return;
-    setTimeout(async () => {
-        const roleMembers = role.members.map(member => member.id);
-        const unansweredMembers = roleMembers.filter(memberId => !answeredMembers.has(memberId));
-
-        if (unansweredMembers.length > 0) {
-            const tagMessage = unansweredMembers.map(id => `<@${id}>`).join(' ');
-            await thread.send(`以下成員尚未作答：${tagMessage}`);
-        }
-    }, timeMs);
 }
 
 async function checkIfQuestion(message, guild) {
