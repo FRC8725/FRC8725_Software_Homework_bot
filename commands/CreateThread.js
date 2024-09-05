@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionsBitField, ButtonStyle, ButtonBuilder, ActionRowBuilder, time } = require('discord.js');
+const { SlashCommandBuilder, PermissionsBitField, ButtonStyle, ButtonBuilder, ActionRowBuilder } = require('discord.js');
 const { CODE_CHANNEL_ID } = require('../config.json');
 
 class createThread {
@@ -13,17 +13,7 @@ class createThread {
             .addRoleOption(option =>
                 option.setName('role')
                     .setDescription('要tag的身分組')
-                    .setRequired(true))
-            .addStringOption(option =>
-                option.setName('time')
-                    .setDescription('提醒時間')
-                    .setRequired(false)
-                    .addChoices(
-                        { name: '1 分鐘', value: '1min'},
-                        { name: '1 小時', value: '1hr'},
-                        { name: '1 天', value: '1d'}
-                    )
-            );
+                    .setRequired(true));
     }
     async execute(interaction) {
         if (!interaction.channelId == CODE_CHANNEL_ID) {
