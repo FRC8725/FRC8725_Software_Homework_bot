@@ -20,14 +20,18 @@ def get_problem_info(pid):
     # Get info
     info_parser = soup.find("div", class_="problembox", id="problem_content").getText(strip=True)
     info_text = re.sub(r"\$(.*?)\$", r"`\1`", info_parser)
+    info_text = info_text.replace(r"\cdots", "…")
+    info_text = info_text.replace(r"\le", "≤")
 
     # Get input
     input_parser = soup.find("div", class_="problembox", id="problem_theinput").getText(strip=True)
     input_text = re.sub(r"\$(.*?)\$", r"`\1`", input_parser)
+    input_text = input_text.replace(r"\le", "≤")
 
     # Get output
     output_parser = soup.find("div", class_="problembox", id="problem_theinput").getText(strip=True)
     output_text = re.sub(r"\$(.*?)\$", r"`\1`", output_parser)
+    output_text = output_text.replace(r"\le", "≤")
 
     return jsonify({
         "id": pid,
