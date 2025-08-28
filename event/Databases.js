@@ -91,11 +91,11 @@ async function monitorThread(thread, guild) {
 }
 
 async function checkIfQuestion(message, guild) {
-    const adminRole = guild.roles.cache.get(ADMIN_ROLES_ID);
-    if (!adminRole) return false;
-
     const member = await guild.members.fetch(message.author.id);
-    return member.roles.cache.has(adminRole.id);
+    const mentioned = ADMIN_ROLES_ID.some(roleId => member.roles.cache.has(roleId));
+
+    if (mentioned) return true;
+    return mentioned;
 }
 
 module.exports = {

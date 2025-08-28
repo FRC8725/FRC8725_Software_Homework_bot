@@ -24,21 +24,21 @@ def get_problem_info(pid):
     info_text = info_text.replace(r"\le", "≤")
 
     # Get input
-    input_parser = soup.find("div", class_="problembox", id="problem_theinput").getText(strip=True)
-    input_text = re.sub(r"\$(.*?)\$", r"`\1`", input_parser)
-    input_text = input_text.replace(r"\le", "≤")
+    input_info_parser = soup.find("div", class_="problembox", id="problem_theinput").getText(strip=True)
+    input_info_text = re.sub(r"\$(.*?)\$", r"`\1`", input_info_parser)
+    input_info_text = input_info_text.replace(r"\le", "≤")
 
     # Get output
     output_parser = soup.find("div", class_="problembox", id="problem_theinput").getText(strip=True)
-    output_text = re.sub(r"\$(.*?)\$", r"`\1`", output_parser)
-    output_text = output_text.replace(r"\le", "≤")
+    output_info_text = re.sub(r"\$(.*?)\$", r"`\1`", output_parser)
+    output_info_text = output_info_text.replace(r"\le", "≤")
 
     return jsonify({
         "id": pid,
         "title": title_text,
         "descript": info_text,
-        "input": input_text,
-        "output": output_text})
+        "input": input_info_text,
+        "output": output_info_text})
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    app.run(port=5000, debug=False)
